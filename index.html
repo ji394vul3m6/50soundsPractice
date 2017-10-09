@@ -92,6 +92,22 @@
   color: red;
 }
 
+#cheet-sheet {
+  color: blue;
+  margin: 10px;
+}
+
+#cheet-sheet>label {
+  cursor: help;
+}
+
+#cheet-sheet>label + div {
+  display: none;
+}
+
+#cheet-sheet>label:hover + div {
+  display: block;
+}
 </style>
 <script>
 var Hiragana = [
@@ -280,6 +296,13 @@ function load() {
         <div id="total-rate" style="display: none;">test3</div>
       </div>
     </div>
+    <div id="cheet-sheet">
+      <label>偷看一下</label>
+      <div>
+        <img src="50sound.png" width="500">
+      </div>
+    </div>
+
   </div>
 </div>
 <div align="center">
