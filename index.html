@@ -1,0 +1,275 @@
+<html>
+<head>
+<style>
+.container {
+  min-width: 600px;
+  width: 70%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.title {
+  font-size: 2em;
+  margin: 20px;
+}
+
+.question-row {
+  width: 500px;
+  margin: 20px auto;
+}
+
+#range-selection {
+  margin: 5px 0;
+  text-align: right;
+}
+
+#range-selection input {
+  display: none;
+}
+
+#range-selection label {
+  display: inline-block;
+  padding: 2px 10px;
+  margin: 0px 5px;
+}
+
+#range-selection input:checked + label {
+  background: grey;
+  color: white;
+}
+
+#question {
+  border: 1px solid;
+  height: 100px;
+  line-height: 100px;
+  font-size: 4em;
+}
+
+.answer-row > div{
+  display: inline-block;
+  text-align: center;
+  width: 25%;
+}
+
+#answer-input {
+  width: 45%;
+  margin: 0 auto;
+  border: 1px solid;
+  height: 50px;
+  line-height: 50px;
+  font-size: 2em;
+}
+
+#answer-input br {
+  display: none;
+}
+
+#check-ret {
+  color: green;
+  font-weight: bold;
+}
+
+#check-ret.error {
+  color: red;
+}
+
+</style>
+<script>
+var Hiragana = [
+  'あ','い','う','え','お',
+  'か','き','く','け','こ',
+  'さ','し','す','せ','そ',
+  'た','ち','つ','て','と',
+  'な','に','ぬ','ね','の',
+  'は','ひ','ふ','へ','ほ',
+  'ま','み','う','め','も',
+  'や',     'ゆ',     'よ',
+  'ら','り','る','れ','ろ',
+  'わ',               'を',
+  'ん'
+], Katakana = [
+  'ア','イ','ウ','エ','オ',
+  'カ','キ','ク','ケ','コ',
+  'サ','シ','ス','セ','ソ',
+  'タ','チ','ツ','テ','ト',
+  'ナ','ニ','ヌ','ネ','ノ',
+  'ハ','ヒ','フ','ヘ','ホ',
+  'マ','ミ','ム','メ','モ',
+  'ヤ',     'ユ',     'ヨ',
+  'ラ','リ','ル','レ','ロ',
+  'ワ',               'ヲ',
+  'ン'
+], question = [
+  Hiragana,
+  Katakana
+], answer = [
+  'a','i','u','e','o',
+  'ka','ki','ku','ke','ko',
+  'sa','si','su','se','so',
+  'ta','ti','tu','te','to',
+  'na','ni','nu','ne','no',
+  'ha','hi','hu','he','ho',
+  'ma','mi','mu','me','mo',
+  'ya',     'yu',     'yo',
+  'ra','ri','ru','re','ro',
+  'wa',               'wo',
+  'n'
+], differentAnswer = {
+  'si': 'shi',
+  'ti': 'chi',
+  'tu': 'tsu'
+}, qIdx = 0,
+  aIdx = 0,
+  useHira = true,
+  useKata = false,
+  statCorrect = 0,
+  statWrong = 0;
+
+function randomPickQuestion() {
+  let index = Math.floor(Math.random() * 46),
+    useQuestion = 0;
+
+  if (useHira && useKata) {
+    useQuestion = Math.floor(Math.random() * 2);
+  } else if (useHira) {
+    useQuestion = 0;
+  } else if (useKata) {
+    useQuestion = 1;
+  }
+
+  qIdx = useQuestion;
+  aIdx = index;
+}
+
+function updateQuestionArea() {
+  let alpha = question[qIdx][aIdx],
+    answerDOM = document.getElementById("answer-input");
+
+  document.getElementById("question").innerHTML = alpha;
+
+  answerDOM.innerHTML = "";
+  answerDOM.childNodes.forEach((child) => {child.remove()})
+}
+
+function refreshQuestion() {
+  randomPickQuestion();
+  updateQuestionArea();
+}
+
+function checkAnswer() {
+  let alpha = question[qIdx][aIdx],
+    answerDOM = document.getElementById("answer-input"),
+    inputAnswer = answerDOM.textContent,
+    correctAnswer = answer[aIdx],
+    correct = inputAnswer === correctAnswer,
+    retDOM = document.getElementById("check-ret"),
+    showDOM = document.getElementById("last-turn"),
+    statDOM = document.getElementById("correct-rate"),
+    correctRate = "";
+
+  if (correctAnswer in differentAnswer) {
+    if (!correct) {
+      correct = (inputAnswer === differentAnswer[correctAnswer]);
+    }
+    correctAnswer = correctAnswer + "/" + differentAnswer[correctAnswer]
+  }
+
+  if (correct) {
+    retDOM.className = "";
+    retDOM.innerHTML = "Correct";
+    statCorrect += 1;
+  } else {
+    retDOM.className = "error";
+    retDOM.innerHTML = "Wrong";
+    statWrong += 1;
+  }
+
+  correctRate = (statCorrect * 100 / (statCorrect + statWrong)).toFixed(2) + "%";
+
+  showDOM.innerHTML = alpha + " " + correctAnswer;
+  statDOM.innerHTML = correctRate;
+}
+
+function inputAnswer() {
+  let e = window.event,
+    keyCode = e.keyCode,
+    ret = false;
+
+  if (keyCode === 13 || keyCode === 32) {
+    ret = checkAnswer();
+    refreshQuestion();
+    return false;
+  }
+}
+
+function rangeChange(e) {
+  let inputDOM = e.currentTarget,
+    type = inputDOM.value;
+
+  if (type === "hira") {
+    useHira = true;
+    useKata = false;
+  } else if (type === "kata") {
+    useHira = false;
+    useKata = true;
+  } else {
+    useHira = true;
+    useKata = true;
+  }
+  refreshQuestion();
+}
+
+function load() {
+  refreshQuestion();
+  document.querySelectorAll("input[type=radio]").forEach(input => {
+    input.onclick = rangeChange;
+  });
+}
+
+</script>
+</head>
+<body onload="load()">
+<div>
+  <div class="container">
+    <div class="title">
+      50音練習
+    </div>
+
+    <div class="question-row">
+      <div id="range-selection">
+        <input id="radio-hira" type="radio" name="question-range" value="hira" checked>
+        <label for="radio-hira">平假</label>
+        <input id="radio-kata" type="radio" name="question-range" value="kata">
+        <label for="radio-kata">片假</label>
+        <input id="radio-all" type="radio" name="question-range" value="all">
+        <label for="radio-all">全部</label>
+      </div>
+      <div id="question"></div>
+    </div>
+
+    <div class="answer-row">
+      <div>
+        <div id="last-turn"></div>
+        <div id="check-ret"></div>
+      </div>
+      <div id="answer-input" contenteditable="true" onkeyup="inputAnswer()"></div>
+      <div>
+        <div id="correct-rate"> 0.00% </div>
+        <div id="total-rate" style="display: none;">test3</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div align="center">
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- 50音練習 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-3589478541680972"
+     data-ad-slot="6963840431"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</div>
+</body>
+</html>
